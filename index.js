@@ -49,9 +49,9 @@ app.use("/api/slots", slotRoute);
 app.use("/api/orders", orderRoute); 
 
 // Mount development helper routes only when not in production
-if (process.env.NODE_ENV !== "production") {
-  app.use("/api/dev", devRoute);
-}
+// if (process.env.NODE_ENV !== "production") {
+//   app.use("/api/dev", devRoute);
+// }
 
 // Serve uploaded files statically from /uploads
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
