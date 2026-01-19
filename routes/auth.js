@@ -242,6 +242,8 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/request-password-reset", async (req, res) => {
   try {
     const { email } = req.body;
+    console.log(email)
+   
     if (!email) return res.status(400).json({ error: "Email required" });
 
     const user = await User.findOne({ email });
