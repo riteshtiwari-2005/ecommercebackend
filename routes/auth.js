@@ -158,6 +158,7 @@ function buildTragageResetEmail(link) {
 ----------------------------------------------------- */
 router.post("/register", async (req, res) => {
   try {
+    console.log("Register request received:", req.body);
     const { enteredFirstName, enteredSurname, enteredMobilePhone, enteredEmail, enteredPassword, maker, type, license } = req.body;
 
     if (!enteredFirstName || !enteredSurname || !enteredMobilePhone || !enteredEmail || !enteredPassword || !maker || !type || !license)
