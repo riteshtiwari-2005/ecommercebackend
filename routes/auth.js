@@ -15,7 +15,7 @@ const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || "10", 10);
    TRAGAGE STYLE OTP EMAIL
 ----------------------------------------------------- */
 function buildTragageOtpEmail(otp, link) {
-  const template = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -32,14 +32,17 @@ function buildTragageOtpEmail(otp, link) {
       <table width="480" cellpadding="0" cellspacing="0" style="
         background:#ffffff;
         border-radius:20px;
-        border: 2px solid #d62828;
+        border:2px solid #d62828;
         padding:35px 30px;
         box-shadow:0 4px 12px rgba(0,0,0,0.18);
       ">
         <tr>
           <td style="text-align:center;">
 
-            <h2 style="margin:10px 0 5px;color:#111;font-size:26px;">Verify Your Account</h2>
+            <h2 style="margin:10px 0 5px;color:#111;font-size:26px;">
+              Verify Your Account
+            </h2>
+
             <p style="color:#444;font-size:15px;margin-bottom:25px;">
               Use the OTP below to continue
             </p>
@@ -60,13 +63,32 @@ function buildTragageOtpEmail(otp, link) {
                 font-weight:bold;
                 color:#d62828;
               ">
-                {{OTP}}
+                ${otp}
               </p>
             </div>
 
-            <p style="color:#555;font-size:14px;margin-bottom:15px;">
+            <p style="color:#555;font-size:14px;margin-bottom:20px;">
               OTP is valid for <b>10 minutes</b>.
             </p>
+
+            <!-- OPTIONAL VERIFY BUTTON -->
+            ${
+              link
+                ? `<a href="${link}" style="
+                    display:inline-block;
+                    margin-bottom:25px;
+                    padding:12px 28px;
+                    background:#d62828;
+                    color:#ffffff;
+                    text-decoration:none;
+                    border-radius:8px;
+                    font-size:15px;
+                    font-weight:bold;
+                  ">
+                    Verify Now
+                  </a>`
+                : ``
+            }
 
             <p style="color:#777;font-size:12px;">
               Do not share this code with anyone.
@@ -81,11 +103,9 @@ function buildTragageOtpEmail(otp, link) {
 </table>
 
 </body>
-</html>
-`;
-
-  return template.replace(/{{OTP}}/g, otp).replace(/{{LINK}}/g, link);
+</html>`;
 }
+
 
 /* -----------------------------------------------------
    TRAGAGE STYLE PASSWORD RESET EMAIL
@@ -339,6 +359,7 @@ router.post("/login", async (req, res) => {
     await user.save();
 
     const link = `${process.env.CLIENT_URL}/login-verify?email=${enteredEmail}`;
+    console.log(link)
     const html = buildTragageOtpEmail(otp, link);
 
     await sendMail({
@@ -348,8 +369,8 @@ router.post("/login", async (req, res) => {
     });
 
     res.json({ message: "OTP sent", requiresOtp: true });
-  } catch {
-    res.status(500).json({ error: "Login failed" });
+  } catch (err){
+    res.status(500).json({ error: err.message });
   }
 });
 
