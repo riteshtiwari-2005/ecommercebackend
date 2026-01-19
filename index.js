@@ -72,6 +72,15 @@ app.get("/", (req, res) => {
   res.send("🚀 API is running...");
 });
 
+app.get("/api/health", (req, res) => {
+  const mongoStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected";
+  res.json({ 
+    status: "ok", 
+    database: mongoStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+
 /* =======================
    API ROUTES
 ======================= */

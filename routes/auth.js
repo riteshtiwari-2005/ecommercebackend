@@ -224,10 +224,21 @@ router.post("/register", async (req, res) => {
     const link = `${process.env.CLIENT_URL}/verify?email=${enteredEmail}`;
     const html = buildTragageOtpEmail(otp, link);
 
-    await sendMail({
-      to: enteredEmail,
-      subject: "Email Verification Code",
-      html,
+    // Send email with timeout
+    const emailTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Email timeout")), 25000)
+    );
+    
+    await Promise.race([
+      sendMail({
+        to: enteredEmail,
+        subject: "Email Verification Code",
+        html,
+      }),
+      emailTimeout
+    ]).catch(err => {
+      console.error("Email sending failed:", err.message);
+      // Continue anyway - user is created
     });
 
     res.status(200).json({ message: "User created. OTP sent to email." });
@@ -343,7 +354,9 @@ router.post("/login", async (req, res) => {
   try {
     const { enteredEmail, enteredPassword } = req.body;
 
-    const user = await User.findOne({ email: enteredEmail });
+    console.log("Login attempt for:", enteredEmail);
+
+    const user = await User.findOne({ email: enteredEmail }).maxTimeMS(10000);
     if (!user) return res.status(401).json({ error: "Wrong credentials!" });
 
     const hashed = CryptoJS.AES.decrypt(user.password, process.env.PASS_SEC);
@@ -356,21 +369,36 @@ router.post("/login", async (req, res) => {
     user.otp = otp;
     user.otpExpiry = expiry;
 
+    console.log("Saving OTP to database...");
     await user.save();
+    console.log("OTP saved successfully");
 
     const link = `${process.env.CLIENT_URL}/login-verify?email=${enteredEmail}`;
-    console.log(link)
+    console.log("Sending email to:", enteredEmail);
     const html = buildTragageOtpEmail(otp, link);
 
-    await sendMail({
-      to: enteredEmail,
-      subject: "Your Login Code",
-      html,
+    // Send email with timeout
+    const emailTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Email timeout")), 25000)
+    );
+    
+    await Promise.race([
+      sendMail({
+        to: enteredEmail,
+        subject: "Your Login Code",
+        html,
+      }),
+      emailTimeout
+    ]).catch(err => {
+      console.error("Email sending failed:", err.message);
+      // Continue anyway - OTP is saved
     });
 
+    console.log("Login process completed");
     res.json({ message: "OTP sent", requiresOtp: true });
   } catch (err){
-    res.status(500).json({ error: err.message });
+    console.error("Login error:", err.message);
+    res.status(500).json({ error: err.message || "Connection timeout" });
   }
 });
 
