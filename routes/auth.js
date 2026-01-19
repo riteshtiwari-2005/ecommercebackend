@@ -160,9 +160,23 @@ router.post("/register", async (req, res) => {
   try {
     console.log("Register request received:", req.body);
     const { enteredFirstName, enteredSurname, enteredMobilePhone, enteredEmail, enteredPassword, maker, type, license } = req.body;
+    if (!enteredFirstName)
+      return res.status(400).json({ message: "First name is required" });
+    if (!enteredSurname)
+      return res.status(400).json({ message: "Surname is required" });
+    if (!enteredMobilePhone)
+      return res.status(400).json({ message: "Mobile phone is required" });
+    if (!enteredEmail)
+      return res.status(400).json({ message: "Email is required" });
+    if (!enteredPassword)
+      return res.status(400).json({ message: "Password is required" });
+    if (!maker)
+      return res.status(400).json({ message: "Maker is required" });
+    if (!type)
+      return res.status(400).json({ message: "Type is required" });
+    if (!license)
+      return res.status(400).json({ message: "License is required" });
 
-    if (!enteredFirstName || !enteredSurname || !enteredMobilePhone || !enteredEmail || !enteredPassword || !maker || !type || !license)
-      return res.json({ message: "Please enter all the details" });
 
     const exists = await User.findOne({ email: enteredEmail });
     if (exists) return res.status(401).json({ message: "User already exist" });
@@ -179,7 +193,7 @@ router.post("/register", async (req, res) => {
       license,
     });
 
-    
+
     await newUser.save();
 
     const otp = genOtp();
@@ -243,7 +257,7 @@ router.post("/request-password-reset", async (req, res) => {
   try {
     const { email } = req.body;
     console.log(email)
-   
+
     if (!email) return res.status(400).json({ error: "Email required" });
 
     const user = await User.findOne({ email });
