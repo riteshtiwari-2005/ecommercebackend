@@ -14,7 +14,15 @@ mongoose.set("strictQuery", false);
 
 if (process.env.MONGO_URL) {
   mongoose
-    .connect(process.env.MONGO_URL)
+    .connect(process.env.MONGO_URL, {
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      retryWrites: true,
+      retryReads: true,
+    })
     .then(() => console.log("✅ DB Connection Successful!"))
     .catch((err) => {
       console.error("❌ DB Connection Error:", err);
@@ -32,9 +40,9 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "http://localhost:5173"
-      // add deployed frontend later
-    ],
+      "http://localhost:5173",
+      process.env.CLIENT_URL
+    ].filter(Boolean),
     credentials: true
   })
 );

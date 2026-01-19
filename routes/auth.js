@@ -358,7 +358,7 @@ router.post("/login", async (req, res) => {
 
     await user.save();
 
-    const link = `http://localhost:3000/login-verify?email=${enteredEmail}`;
+    const link = `${process.env.CLIENT_URL}/login-verify?email=${enteredEmail}`;
     console.log(link)
     const html = buildTragageOtpEmail(otp, link);
 

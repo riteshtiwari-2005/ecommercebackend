@@ -21,8 +21,9 @@ async function createTransporter() {
     },
     tls: {
       rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== "false",
-    },
-  });
+    },    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 45000,  });
 }
 
 /**
