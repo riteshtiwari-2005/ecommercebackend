@@ -37,15 +37,7 @@ if (process.env.MONGO_URL) {
    MIDDLEWARE (ORDER MATTERS)
 ======================= */
 app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      process.env.CLIENT_URL
-    ].filter(Boolean),
-    credentials: true
-  })
-);
+  cors({}));
 
 // REQUIRED body parsers
 app.use(express.json());
