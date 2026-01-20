@@ -1,50 +1,43 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-let transporter = null;
+let resendClient = null;
 
 /**
- * Create a transporter using ONLY real SMTP credentials.
- * If missing, throw an error.
+ * Initialize Resend client using RESEND_API_KEY.
  */
-async function createTransporter() {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    throw new Error("SMTP credentials missing. Set SMTP_HOST, SMTP_USER, SMTP_PASS.");
+function getResendClient() {
+  if (!resendClient) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error("RESEND_API_KEY missing. Set RESEND_API_KEY in environment.");
+    }
+    resendClient = new Resend(apiKey);
   }
-
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: (function(){ const p = parseInt(process.env.SMTP_PORT || "587", 10); return p; })(),
-    secure: (function(){ const p = parseInt(process.env.SMTP_PORT || "587", 10); return (process.env.SMTP_SECURE === "true") || p === 465; })(),
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    tls: {
-      rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== "false",
-    },    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 45000,  });
+  return resendClient;
 }
 
 /**
- * Send an email using the configured SMTP server.
+ * Send an email using Resend.
+ * Maintains the same function signature used across the app.
  */
 async function sendMail({ to, subject, text, html }) {
-  if (!transporter) {
-    transporter = await createTransporter();
-  }
+  const resend = getResendClient();
 
   const from =
     process.env.FROM_EMAIL ||
-    process.env.SMTP_USER ||
-    "no-reply@example.com";
+    // Fallback to Resend's onboarding domain for non-production use
+    (process.env.NODE_ENV === "production" ? "no-reply@example.com" : "onboarding@resend.dev");
 
-  const message = { from, to, subject, text, html };
+  const payload = { from, to, subject, html, text };
 
   try {
-    return await transporter.sendMail(message);
+    const { data, error } = await resend.emails.send(payload);
+    if (error) {
+      throw new Error(error.message || "Resend email send failed");
+    }
+    return data;
   } catch (err) {
-    console.error("SMTP send failed:", err.message || err);
+    console.error("Resend send failed:", err.message || err);
     throw err;
   }
 }

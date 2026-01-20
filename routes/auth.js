@@ -395,7 +395,7 @@ router.post("/login", async (req, res) => {
     });
 
     console.log("Login process completed");
-    res.json({ message: "OTP sent", requiresOtp: true });
+    return res.json({ message: "OTP sent", requiresOtp: true });
   } catch (err){
     console.error("Login error:", err.message);
     res.status(500).json({ error: err.message || "Connection timeout" });
