@@ -16,12 +16,10 @@ function getTransporter() {
       throw new Error("SMTP credentials missing. Set SMTP_HOST, SMTP_USER, SMTP_PASS.");
     }
 
-    const secure = process.env.SMTP_SECURE === "true" || port === 465;
-
     transporter = nodemailer.createTransport({
       host,
       port,
-      secure,
+      secure: false,
       auth: { user, pass },
     });
   }
